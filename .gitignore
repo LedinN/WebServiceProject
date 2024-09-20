@@ -38,3 +38,6 @@ out/
 
 ### Config files ###
 src/main/resources/application.properties
+
+### keystore ###
+src/main/resources/mykeystore.p12
