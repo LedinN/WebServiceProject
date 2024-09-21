@@ -1,10 +1,6 @@
-package com.nick.webserviceproject.model;
+package com.nick.webserviceproject.dto;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
-
-@Embeddable
-public class Location {
+public class LocationDTO {
 
     private double lat;
     private double lon;

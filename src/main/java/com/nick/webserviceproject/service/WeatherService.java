@@ -1,5 +1,6 @@
 package com.nick.webserviceproject.service;
 
+import com.nick.webserviceproject.dto.WeatherDataDTO;
 import com.nick.webserviceproject.model.WeatherData;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,7 +19,7 @@ public class WeatherService {
         this.apiService = apiService;
     }
 
-    public Mono<WeatherData> getCurrentWeather(String city) {
+    public Mono<WeatherDataDTO> getCurrentWeather(String city) {
         String apiKey = apiService.getApiKey();
 
         return weatherWebClient.get()
@@ -27,7 +28,7 @@ public class WeatherService {
                         .queryParam("apikey", apiKey)
                         .build())
                 .retrieve()
-                .bodyToMono(WeatherData.class);
+                .bodyToMono(WeatherDataDTO.class);
     }
 
 }

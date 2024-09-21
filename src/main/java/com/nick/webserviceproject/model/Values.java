@@ -1,5 +1,9 @@
 package com.nick.webserviceproject.model;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+
+@Embeddable
 public class Values {
 
     private double cloudBase;
