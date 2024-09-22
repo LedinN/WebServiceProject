@@ -3,11 +3,11 @@ package com.nick.webserviceproject.dto;
 public class ValuesDTO {
 
     private Double temperature;
-    private Double humidity;
+    private int humidity;
     private Double windSpeed;
-    private Double cloudCover;
+    private int cloudCover;
     private Double dewPoint;
-    private Double precipitationProbability;
+    private int precipitationProbability;
     private Double pressureSurfaceLevel;
     private Double visibility;
     private Double windDirection;
@@ -21,11 +21,11 @@ public class ValuesDTO {
         this.temperature = temperature;
     }
 
-    public Double getHumidity() {
+    public int getHumidity() {
         return humidity;
     }
 
-    public void setHumidity(Double humidity) {
+    public void setHumidity(int humidity) {
         this.humidity = humidity;
     }
 
@@ -37,11 +37,11 @@ public class ValuesDTO {
         this.windSpeed = windSpeed;
     }
 
-    public Double getCloudCover() {
+    public int getCloudCover() {
         return cloudCover;
     }
 
-    public void setCloudCover(Double cloudCover) {
+    public void setCloudCover(int cloudCover) {
         this.cloudCover = cloudCover;
     }
 
@@ -53,11 +53,11 @@ public class ValuesDTO {
         this.dewPoint = dewPoint;
     }
 
-    public Double getPrecipitationProbability() {
+    public int getPrecipitationProbability() {
         return precipitationProbability;
     }
 
-    public void setPrecipitationProbability(Double precipitationProbability) {
+    public void setPrecipitationProbability(int precipitationProbability) {
         this.precipitationProbability = precipitationProbability;
     }
 
