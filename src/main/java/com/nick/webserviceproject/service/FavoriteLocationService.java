@@ -3,6 +3,7 @@ package com.nick.webserviceproject.service;
 import com.nick.webserviceproject.model.favorite.FavoriteLocation;
 import com.nick.webserviceproject.repository.FavoriteLocationRepository;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +17,8 @@ public class FavoriteLocationService {
         this.favoriteLocationRepository = locationRepository;
     }
 
-    public FavoriteLocation addFavoriteLocation(FavoriteLocation location) {
-        return favoriteLocationRepository.save(location);
+    public Mono<FavoriteLocation> addFavoriteLocation(FavoriteLocation location) {
+        return Mono.just(favoriteLocationRepository.save(location));
     }
 
     public List<FavoriteLocation> getAllFavoriteLocations() {

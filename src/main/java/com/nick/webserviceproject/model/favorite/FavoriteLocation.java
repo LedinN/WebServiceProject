@@ -10,7 +10,9 @@ public class FavoriteLocation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false)
     private Double lat;
+    @Column(nullable = false)
     private Double lon;
     private String name;
 

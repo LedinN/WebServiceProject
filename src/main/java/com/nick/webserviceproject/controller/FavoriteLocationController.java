@@ -4,10 +4,12 @@ package com.nick.webserviceproject.controller;
 import com.nick.webserviceproject.dto.favorite.FavoriteLocationDTO;
 import com.nick.webserviceproject.model.favorite.FavoriteLocation;
 import com.nick.webserviceproject.service.FavoriteLocationService;
+import com.nick.webserviceproject.service.WeatherService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,17 +20,22 @@ import java.util.Optional;
 public class FavoriteLocationController {
 
     private final FavoriteLocationService favoriteLocationService;
+    private final WeatherService weatherService;
 
-    public FavoriteLocationController(FavoriteLocationService favoriteLocationService) {
+    public FavoriteLocationController(FavoriteLocationService favoriteLocationService, WeatherService weatherService) {
         this.favoriteLocationService = favoriteLocationService;
+        this.weatherService = weatherService;
     }
 
     @PostMapping
-    public ResponseEntity<String> addFavoriteLocation(@Valid @RequestBody FavoriteLocationDTO locationDTO) {
+    public Mono<ResponseEntity<String>> addFavoriteLocation(@Valid @RequestBody FavoriteLocationDTO locationDTO) {
         FavoriteLocation location = convertToEntity(locationDTO);
-
-        FavoriteLocation savedLocation = favoriteLocationService.addFavoriteLocation(location);
-        return ResponseEntity.status(201).body(savedLocation.toString());
+        return favoriteLocationService.addFavoriteLocation(location)
+                .flatMap(savedLocation ->
+                        weatherService.getAndSaveCurrentWeather(savedLocation.getLat()+","+savedLocation.getLon())
+                                .then(Mono.just(ResponseEntity.status(201)
+                                        .build())
+                ));
     }
 
     @GetMapping
