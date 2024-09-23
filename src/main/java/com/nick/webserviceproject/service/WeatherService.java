@@ -96,7 +96,15 @@ public class WeatherService {
     public Mono<List<WeatherDataForecast>> getAndSaveForecastWeather(String location) {
         return getForecastWeather(location)
                 .map(this::mapToWeatherDataForecast)
-                .doOnNext(forecastWeatherRepository::saveAll);
+                .doOnNext(forecasts -> {
+                    double averageTemperature = forecasts.stream()
+                            .mapToDouble(WeatherDataForecast::getTemperatureAvg)
+                            .average()
+                            .orElse(Double.NaN);
+
+                    forecasts.forEach(forecast -> forecast.setWeeklyAverageTemperature(averageTemperature));
+                    forecastWeatherRepository.saveAll(forecasts);
+                });
     }
 
     private WeatherDataCurrent mapToWeatherData(WeatherDataDTO weatherDataDTO) {

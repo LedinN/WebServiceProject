@@ -15,6 +15,9 @@ public class WeatherDataForecast {
 
     private LocalDate date;
 
+    @Embedded
+    private Location location;
+
     private Double cloudBaseAvg;
     private Double cloudBaseMax;
     private Double cloudBaseMin;
@@ -143,8 +146,15 @@ public class WeatherDataForecast {
     private Double windSpeedMax;
     private Double windSpeedMin;
 
-    @Embedded
-    private Location location;
+    private Double weeklyAverageTemperature;
+
+    public Double getWeeklyAverageTemperature() {
+        return weeklyAverageTemperature;
+    }
+
+    public void setWeeklyAverageTemperature(Double weeklyAverageTemperature) {
+        this.weeklyAverageTemperature = weeklyAverageTemperature;
+    }
 
     public long getId() {
         return id;
