@@ -1,9 +1,12 @@
 package com.nick.webserviceproject.controller;
 
 
-import com.nick.webserviceproject.model.FavoriteLocation;
+import com.nick.webserviceproject.dto.favorite.FavoriteLocationDTO;
+import com.nick.webserviceproject.model.favorite.FavoriteLocation;
 import com.nick.webserviceproject.service.FavoriteLocationService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/favorite-locations")
+@Validated
 public class FavoriteLocationController {
 
     private final FavoriteLocationService favoriteLocationService;
@@ -20,7 +24,9 @@ public class FavoriteLocationController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addFavoriteLocation(@RequestBody FavoriteLocation location) {
+    public ResponseEntity<String> addFavoriteLocation(@Valid @RequestBody FavoriteLocationDTO locationDTO) {
+        FavoriteLocation location = convertToEntity(locationDTO);
+
         FavoriteLocation savedLocation = favoriteLocationService.addFavoriteLocation(location);
         return ResponseEntity.status(201).body(savedLocation.toString());
     }
@@ -41,7 +47,8 @@ public class FavoriteLocationController {
     @PutMapping("/{id}")
     public ResponseEntity<FavoriteLocation> updateFavoriteLocation(
             @PathVariable long id,
-            @RequestBody FavoriteLocation updatedLocation) {
+            @Valid @RequestBody FavoriteLocationDTO updatedLocationDTO) {
+        FavoriteLocation updatedLocation = convertToEntity(updatedLocationDTO);
         Optional<FavoriteLocation> location = favoriteLocationService.updateFavoriteLocation(id, updatedLocation);
         return location.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -51,5 +58,13 @@ public class FavoriteLocationController {
     public ResponseEntity<Void> deleteFavoriteLocation(@PathVariable long id) {
         favoriteLocationService.deleteFavoriteLocation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private FavoriteLocation convertToEntity(FavoriteLocationDTO locationDTO) {
+        FavoriteLocation location = new FavoriteLocation();
+        location.setName(locationDTO.getName());
+        location.setLat(locationDTO.getLat());
+        location.setLon(locationDTO.getLon());
+        return location;
     }
 }

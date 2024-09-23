@@ -1,6 +1,6 @@
 package com.nick.webserviceproject.service;
 
-import com.nick.webserviceproject.model.FavoriteLocation;
+import com.nick.webserviceproject.model.favorite.FavoriteLocation;
 import com.nick.webserviceproject.repository.FavoriteLocationRepository;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +31,15 @@ public class FavoriteLocationService {
     public Optional<FavoriteLocation> updateFavoriteLocation(Long id, FavoriteLocation updatedLocation) {
         return favoriteLocationRepository.findById(id)
                 .map(existingLocation -> {
-                    existingLocation.setName(updatedLocation.getName());
-                    existingLocation.setLat(updatedLocation.getLat());
-                    existingLocation.setLon(updatedLocation.getLon());
+                    if (updatedLocation.getName() != null) {
+                        existingLocation.setName(updatedLocation.getName());
+                    }
+                    if (updatedLocation.getLat() != null) {
+                        existingLocation.setLat(updatedLocation.getLat());
+                    }
+                    if (updatedLocation.getLon() != null) {
+                        existingLocation.setLon(updatedLocation.getLon());
+                    }
                     return favoriteLocationRepository.save(existingLocation);
                 });
     }

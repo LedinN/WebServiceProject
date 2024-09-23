@@ -1,4 +1,4 @@
-package com.nick.webserviceproject.model;
+package com.nick.webserviceproject.model.favorite;
 
 import jakarta.persistence.*;
 

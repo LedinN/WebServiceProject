@@ -1,16 +1,13 @@
-package com.nick.webserviceproject.dto.common;
+package com.nick.webserviceproject.dto.favorite;
 
+import jakarta.validation.constraints.*;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Pattern;
+public class FavoriteLocationDTO {
 
-public class WeatherRequestDTO {
-
+    @NotBlank(message = "Name is required")
+    @Size(max = 40, message = "City name must be 40 characters or shorter" )
     @Pattern(regexp = "^[a-zA-Z\\s-]+$", message = "Invalid city name")
-    @Size(max = 40, message = "City name must be 40 characters or shorter")
-    private String city;
+    private String name;
 
     @Min(value = -90, message = "Latitude must be between -90 and 90")
     @Max(value = 90, message = "Latitude must be between -90 and 90")
@@ -20,12 +17,12 @@ public class WeatherRequestDTO {
     @Max(value = 180, message = "Longitude must be between -180 and 180")
     private Double lon;
 
-    public String getCity() {
-        return city;
+    public String getName() {
+        return name;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Double getLat() {
