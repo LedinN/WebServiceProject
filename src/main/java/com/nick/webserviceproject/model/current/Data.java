@@ -24,4 +24,11 @@ public class Data {
     public void setValues(Values values) {
         this.values = values;
     }
+
+    @Override
+    public String toString() {
+        return "Time: " + time + "\n" +
+                "Values: " + values.toString();
+    }
+
 }

@@ -2,6 +2,7 @@ package com.nick.webserviceproject.controller;
 
 
 import com.nick.webserviceproject.dto.favorite.FavoriteLocationDTO;
+import com.nick.webserviceproject.model.current.WeatherDataCurrent;
 import com.nick.webserviceproject.model.favorite.FavoriteLocation;
 import com.nick.webserviceproject.service.FavoriteLocationService;
 import com.nick.webserviceproject.service.WeatherService;
@@ -45,10 +46,27 @@ public class FavoriteLocationController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FavoriteLocation> getFavoriteLocationById(@PathVariable long id) {
-        Optional<FavoriteLocation> location = favoriteLocationService.getFavoriteLocationById(id);
-        return location.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<String> getFavoriteLocationById(@PathVariable long id) {
+        Optional<FavoriteLocation> locationOpt = favoriteLocationService.getFavoriteLocationById(id);
+
+        if (locationOpt.isPresent()) {
+            FavoriteLocation location = locationOpt.get();
+            Optional<WeatherDataCurrent> currentWeatherOpt = weatherService.findWeatherByLatAndLon(location.getLat(),location.getLon());
+
+            if (currentWeatherOpt.isPresent()) {
+                WeatherDataCurrent currentWeather = currentWeatherOpt.get();
+
+                String response = "Location" + location.getName() +
+                        "\nLatitude: " + location.getLat() +
+                        "\nLongitude: " + location.getLon() +
+                        "\nCurrent Weather:\n" + currentWeather.toString();
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(404).body("No weather data found");
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/{id}")

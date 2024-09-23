@@ -185,4 +185,20 @@ public class Values {
     public void setWindSpeed(double windSpeed) {
         this.windSpeed = windSpeed;
     }
+
+    @Override
+    public String toString() {
+        return "Temperature: " + temperature + "°C, " +
+                "Apparent Temperature: " + temperatureApparent + "°C, " +
+                "Humidity: " + humidity + "%, " +
+                "Wind Speed: " + windSpeed + " km/h, " +
+                "Wind Gust: " + windGust + " km/h, " +
+                "Cloud Cover: " + cloudCover + "%, " +
+                "Visibility: " + visibility + " km, " +
+                "Dew Point: " + dewPoint + "°C, " +
+                "Pressure: " + pressureSurfaceLevel + " hPa, " +
+                "Precipitation Probability: " + precipitationProbability + "%, " +
+                "UV Index: " + uvIndex + ", " +
+                "Weather Code: " + weatherCode;
+    }
 }

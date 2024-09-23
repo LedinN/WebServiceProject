@@ -15,6 +15,8 @@ public class WeatherDataCurrent {
     @Embedded
     private Location location;
 
+
+
     public Data getData() {
         return data;
     }
@@ -29,5 +31,12 @@ public class WeatherDataCurrent {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    @Override
+    public String toString() {
+        return "Weather Data:\n" +
+                "Location: " + location + "\n" +
+                "Data: " + data;
     }
 }

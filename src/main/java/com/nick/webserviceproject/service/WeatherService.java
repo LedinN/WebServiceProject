@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class WeatherService {
@@ -36,6 +37,10 @@ public class WeatherService {
         this.apiService = apiService;
         this.currentWeatherRepository = currentWeatherRepository;
         this.forecastWeatherRepository = forecastWeatherRepository;
+    }
+
+    public Optional<WeatherDataCurrent> findWeatherByLatAndLon(double lat, double lon) {
+        return currentWeatherRepository.findByLatAndLon(lat,lon);
     }
 
     public Mono<WeatherDataDTO> getCurrentWeather(String location) {
