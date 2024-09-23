@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -22,36 +23,48 @@ public class WeatherController {
 
     @GetMapping("/current")
     public Mono<ResponseEntity<WeatherDataCurrent>> getCurrentWeather(
-            @RequestParam Optional<String> location,
+            @RequestParam Optional<String> city,
             @RequestParam Optional<Double> lat,
             @RequestParam Optional<Double> lon) {
 
-        // Remake if time, simpler if statement and merge return for coordinates/city
+        String location;
         if (lat.isPresent() && lon.isPresent()) {
-            String latLonLocation = lat.get() + "," + lon.get();
-            return weatherService.getAndSaveWeatherByCoordinates(latLonLocation)
-                    .map(ResponseEntity::ok)
-                    .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null))
-                    .onErrorResume(e -> {
-                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
-                    });
+            location = lat.get() + "," + lon.get();
+        } else if (city.isPresent()) {
+            location = city.get();
+        } else {
+            return Mono.just(ResponseEntity.badRequest().build());
         }
 
-        if (location.isPresent()) {
-            return weatherService.getAndSaveWeatherByCity(location.get())
-                    .map(ResponseEntity::ok)
-                    .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_FOUND).build())
-                    .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
-        }
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+        return weatherService.getAndSaveCurrentWeather(location)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(e -> {
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
     }
 
+
     @GetMapping("/forecast")
-    public Mono<ResponseEntity<WeatherDataForecast>> getForecastWeather(
-            @RequestParam Optional<String> location,
+    public Mono<ResponseEntity<List<WeatherDataForecast>>> getForecastWeather(
+            @RequestParam Optional<String> city,
             @RequestParam Optional<Double> lat,
             @RequestParam Optional<Double> lon) {
+        String location;
+        if (lat.isPresent() && lon.isPresent()) {
+            location = lat.get() + "," + lon.get();
+        } else if (city.isPresent()) {
+            location = city.get();
+        } else {
+            return Mono.just(ResponseEntity.badRequest().build());
+        }
 
+        return weatherService.getAndSaveForecastWeather(location)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(e -> {
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
     }
 
 

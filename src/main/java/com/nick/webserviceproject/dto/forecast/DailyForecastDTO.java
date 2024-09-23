@@ -1,7 +1,10 @@
 package com.nick.webserviceproject.dto.forecast;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class DailyForecastDTO {
     private String time;
+    @JsonProperty("values")
     private DailyValuesDTO valuesDTO;
 
     public String getTime() {

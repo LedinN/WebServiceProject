@@ -9,7 +9,8 @@ import com.nick.webserviceproject.model.common.Location;
 import com.nick.webserviceproject.model.current.Values;
 import com.nick.webserviceproject.model.current.WeatherDataCurrent;
 import com.nick.webserviceproject.model.forecast.WeatherDataForecast;
-import com.nick.webserviceproject.repository.WeatherRepository;
+import com.nick.webserviceproject.repository.CurrentWeatherRepository;
+import com.nick.webserviceproject.repository.ForecastWeatherRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -25,14 +26,16 @@ public class WeatherService {
 
     private final WebClient weatherWebClient;
     private final ApiService apiService;
-    WeatherRepository weatherRepository;
+    CurrentWeatherRepository currentWeatherRepository;
+    ForecastWeatherRepository forecastWeatherRepository;
 
-    public WeatherService(WebClient.Builder webClientBuilder, ApiService apiService, WeatherRepository weatherRepository) {
+    public WeatherService(WebClient.Builder webClientBuilder, ApiService apiService, CurrentWeatherRepository currentWeatherRepository, ForecastWeatherRepository forecastWeatherRepository) {
         this.weatherWebClient = webClientBuilder
                 .baseUrl("https://api.tomorrow.io/v4/weather")
                 .build();
         this.apiService = apiService;
-        this.weatherRepository = weatherRepository;
+        this.currentWeatherRepository = currentWeatherRepository;
+        this.forecastWeatherRepository = forecastWeatherRepository;
     }
 
     public Mono<WeatherDataDTO> getCurrentWeather(String location) {
@@ -47,7 +50,7 @@ public class WeatherService {
                 .retrieve()
                 .bodyToMono(WeatherDataDTO.class)
                 .onErrorResume(WebClientResponseException.BadRequest.class, e -> {
-                   return Mono.empty();
+                    return Mono.empty();
                 });
     }
 
@@ -74,7 +77,7 @@ public class WeatherService {
                 .uri(uriBuilder -> uriBuilder
                         .path("/forecast")
                         .queryParam("location", location)
-                        .queryParam("timesteps","daily")
+                        .queryParam("timesteps", "daily")
                         .queryParam("apikey", apiKey)
                         .build())
                 .retrieve()
@@ -84,16 +87,16 @@ public class WeatherService {
                 });
     }
 
-    public Mono<WeatherDataCurrent> getAndSaveWeatherByCity(String city) {
-        return getCurrentWeather(city)
+    public Mono<WeatherDataCurrent> getAndSaveCurrentWeather(String location) {
+        return getCurrentWeather(location)
                 .map(this::mapToWeatherData)
-                .doOnNext(weatherRepository::save);
+                .doOnNext(currentWeatherRepository::save);
     }
 
-    public Mono<WeatherDataCurrent> getAndSaveWeatherByCoordinates(String latLonLocation) {
-        return getCurrentWeather(latLonLocation)
-                .map(this::mapToWeatherData)
-                .doOnNext(weatherRepository::save);
+    public Mono<List<WeatherDataForecast>> getAndSaveForecastWeather(String location) {
+        return getForecastWeather(location)
+                .map(this::mapToWeatherDataForecast)
+                .doOnNext(forecastWeatherRepository::saveAll);
     }
 
     private WeatherDataCurrent mapToWeatherData(WeatherDataDTO weatherDataDTO) {
@@ -140,6 +143,106 @@ public class WeatherService {
             location.setLat(weatherDataForecastDTO.getLocationDTO().getLat());
             location.setLon(weatherDataForecastDTO.getLocationDTO().getLon());
             weatherDataForecast.setLocation(location);
+
+            weatherDataForecast.setCloudBaseAvg(values.getCloudBaseAvg());
+            weatherDataForecast.setCloudBaseMax(values.getCloudBaseMax());
+            weatherDataForecast.setCloudBaseMin(values.getCloudBaseMin());
+
+            weatherDataForecast.setCloudCeilingAvg(values.getCloudCeilingAvg());
+            weatherDataForecast.setCloudCeilingMax(values.getCloudCeilingMax());
+            weatherDataForecast.setCloudCeilingMin(values.getCloudCeilingMin());
+
+            weatherDataForecast.setCloudCoverAvg(values.getCloudCoverAvg());
+            weatherDataForecast.setCloudCoverMax(values.getCloudCoverMax());
+            weatherDataForecast.setCloudCoverMin(values.getCloudCoverMin());
+
+            weatherDataForecast.setDewPointAvg(values.getDewPointAvg());
+            weatherDataForecast.setDewPointMax(values.getDewPointMax());
+            weatherDataForecast.setDewPointMin(values.getDewPointMin());
+
+            weatherDataForecast.setEvapotranspirationAvg(values.getEvapotranspirationAvg());
+            weatherDataForecast.setEvapotranspirationMax(values.getEvapotranspirationMax());
+            weatherDataForecast.setEvapotranspirationMin(values.getEvapotranspirationMin());
+            weatherDataForecast.setEvapotranspirationSum(values.getEvapotranspirationSum());
+
+            weatherDataForecast.setFreezingRainIntensityAvg(values.getFreezingRainIntensityAvg());
+            weatherDataForecast.setFreezingRainIntensityMax(values.getFreezingRainIntensityMax());
+            weatherDataForecast.setFreezingRainIntensityMin(values.getFreezingRainIntensityMin());
+
+            weatherDataForecast.setHumidityAvg(values.getHumidityAvg());
+            weatherDataForecast.setHumidityMax(values.getHumidityMax());
+            weatherDataForecast.setHumidityMin(values.getHumidityMin());
+
+            weatherDataForecast.setPrecipitationProbabilityAvg(values.getPrecipitationProbabilityAvg());
+            weatherDataForecast.setPrecipitationProbabilityMax(values.getPrecipitationProbabilityMax());
+            weatherDataForecast.setPrecipitationProbabilityMin(values.getPrecipitationProbabilityMin());
+
+            weatherDataForecast.setPressureSurfaceLevelAvg(values.getPressureSurfaceLevelAvg());
+            weatherDataForecast.setPressureSurfaceLevelMax(values.getPressureSurfaceLevelMax());
+            weatherDataForecast.setPressureSurfaceLevelMin(values.getPressureSurfaceLevelMin());
+
+            weatherDataForecast.setRainAccumulationAvg(values.getRainAccumulationAvg());
+            weatherDataForecast.setRainAccumulationMax(values.getRainAccumulationMax());
+            weatherDataForecast.setRainAccumulationMin(values.getRainAccumulationMin());
+            weatherDataForecast.setRainAccumulationSum(values.getRainAccumulationSum());
+
+            weatherDataForecast.setRainIntensityAvg(values.getRainIntensityAvg());
+            weatherDataForecast.setRainIntensityMax(values.getRainIntensityMax());
+            weatherDataForecast.setRainIntensityMin(values.getRainIntensityMin());
+
+            weatherDataForecast.setSleetAccumulationAvg(values.getSleetAccumulationAvg());
+            weatherDataForecast.setSleetAccumulationMax(values.getSleetAccumulationMax());
+            weatherDataForecast.setSleetAccumulationMin(values.getSleetAccumulationMin());
+            weatherDataForecast.setSleetAccumulationSum(values.getSleetAccumulationSum());
+
+            weatherDataForecast.setSleetIntensityAvg(values.getSleetIntensityAvg());
+            weatherDataForecast.setSleetIntensityMax(values.getSleetIntensityMax());
+            weatherDataForecast.setSleetIntensityMin(values.getSleetIntensityMin());
+
+            weatherDataForecast.setSnowAccumulationAvg(values.getSnowAccumulationAvg());
+            weatherDataForecast.setSnowAccumulationMax(values.getSnowAccumulationMax());
+            weatherDataForecast.setSnowAccumulationMin(values.getSnowAccumulationMin());
+            weatherDataForecast.setSnowAccumulationSum(values.getSnowAccumulationSum());
+
+            weatherDataForecast.setSnowIntensityAvg(values.getSnowIntensityAvg());
+            weatherDataForecast.setSnowIntensityMax(values.getSnowIntensityMax());
+            weatherDataForecast.setSnowIntensityMin(values.getSnowIntensityMin());
+
+            weatherDataForecast.setSunriseTime(values.getSunriseTime());
+            weatherDataForecast.setSunsetTime(values.getSunsetTime());
+
+            weatherDataForecast.setTemperatureApparentAvg(values.getTemperatureApparentAvg());
+            weatherDataForecast.setTemperatureApparentMax(values.getTemperatureApparentMax());
+            weatherDataForecast.setTemperatureApparentMin(values.getTemperatureApparentMin());
+
+            weatherDataForecast.setTemperatureAvg(values.getTemperatureAvg());
+            weatherDataForecast.setTemperatureMax(values.getTemperatureMax());
+            weatherDataForecast.setTemperatureMin(values.getTemperatureMin());
+
+            weatherDataForecast.setUvHealthConcernAvg(values.getUvHealthConcernAvg());
+            weatherDataForecast.setUvHealthConcernMax(values.getUvHealthConcernMax());
+            weatherDataForecast.setUvHealthConcernMin(values.getUvHealthConcernMin());
+
+            weatherDataForecast.setUvIndexAvg(values.getUvIndexAvg());
+            weatherDataForecast.setUvIndexMax(values.getUvIndexMax());
+            weatherDataForecast.setUvIndexMin(values.getUvIndexMin());
+
+            weatherDataForecast.setVisibilityAvg(values.getVisibilityAvg());
+            weatherDataForecast.setVisibilityMax(values.getVisibilityMax());
+            weatherDataForecast.setVisibilityMin(values.getVisibilityMin());
+
+            weatherDataForecast.setWeatherCodeMax(values.getWeatherCodeMax());
+            weatherDataForecast.setWeatherCodeMin(values.getWeatherCodeMin());
+
+            weatherDataForecast.setWindDirectionAvg(values.getWindDirectionAvg());
+
+            weatherDataForecast.setWindGustAvg(values.getWindGustAvg());
+            weatherDataForecast.setWindGustMax(values.getWindGustMax());
+            weatherDataForecast.setWindGustMin(values.getWindGustMin());
+
+            weatherDataForecast.setWindSpeedAvg(values.getWindSpeedAvg());
+            weatherDataForecast.setWindSpeedMax(values.getWindSpeedMax());
+            weatherDataForecast.setWindSpeedMin(values.getWindSpeedMin());
 
             weatherDataForecastList.add(weatherDataForecast);
         }

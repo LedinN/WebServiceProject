@@ -1,9 +1,13 @@
 package com.nick.webserviceproject.dto.forecast;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nick.webserviceproject.dto.common.LocationDTO;
 
 public class WeatherDataForecastDTO {
+
+    @JsonProperty("timelines")
     private TimelinesDTO timelinesDTO;
+    @JsonProperty("location")
     private LocationDTO locationDTO;
 
     public TimelinesDTO getTimelinesDTO() {
