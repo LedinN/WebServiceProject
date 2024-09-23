@@ -1,13 +1,16 @@
 package com.nick.webserviceproject.controller;
 
+import com.nick.webserviceproject.dto.common.WeatherRequestDTO;
 import com.nick.webserviceproject.model.current.WeatherDataCurrent;
 import com.nick.webserviceproject.model.forecast.WeatherDataForecast;
 import com.nick.webserviceproject.service.WeatherService;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import reactor.core.publisher.Mono;
@@ -17,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/weather")
+@Validated
 public class WeatherController {
 
     private final WeatherService weatherService;
@@ -28,16 +32,13 @@ public class WeatherController {
     }
 
     @GetMapping("/current")
-    public Mono<ResponseEntity<WeatherDataCurrent>> getCurrentWeather(
-            @RequestParam Optional<String> city,
-            @RequestParam Optional<Double> lat,
-            @RequestParam Optional<Double> lon) {
+    public Mono<ResponseEntity<WeatherDataCurrent>> getCurrentWeather(@Valid WeatherRequestDTO request) {
 
         String location;
-        if (lat.isPresent() && lon.isPresent()) {
-            location = lat.get() + "," + lon.get();
-        } else if (city.isPresent()) {
-            location = city.get();
+        if (request.getLat() != null && request.getLon() != null) {
+            location = request.getLat() + "," + request.getLon();
+        } else if (request.getCity() != null) {
+            location = request.getCity();
         } else {
             return Mono.just(ResponseEntity.badRequest().build());
         }
@@ -58,16 +59,13 @@ public class WeatherController {
 
 
     @GetMapping("/forecast")
-    public Mono<ResponseEntity<List<WeatherDataForecast>>> getForecastWeather(
-            @RequestParam Optional<String> city,
-            @RequestParam Optional<Double> lat,
-            @RequestParam Optional<Double> lon) {
+    public Mono<ResponseEntity<List<WeatherDataForecast>>> getForecastWeather(@Valid WeatherRequestDTO request) {
 
         String location;
-        if (lat.isPresent() && lon.isPresent()) {
-            location = lat.get() + "," + lon.get();
-        } else if (city.isPresent()) {
-            location = city.get();
+        if (request.getLat() != null && request.getLon() != null) {
+            location = request.getLat() + "," + request.getLon();
+        } else if (request.getCity() != null) {
+            location = request.getCity();
         } else {
             return Mono.just(ResponseEntity.badRequest().build());
         }
