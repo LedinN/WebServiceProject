@@ -20,6 +20,10 @@ public class FavoriteLocation {
         this.name = name;
     }
 
+    public FavoriteLocation() {
+
+    }
+
     public long getId() {
         return id;
     }
