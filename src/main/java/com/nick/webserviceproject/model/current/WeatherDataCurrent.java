@@ -1,10 +1,11 @@
-package com.nick.webserviceproject.model;
+package com.nick.webserviceproject.model.current;
 
+import com.nick.webserviceproject.model.common.Location;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "weather_data")
-public class WeatherData {
+@Table(name = "weather_data_current")
+public class WeatherDataCurrent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

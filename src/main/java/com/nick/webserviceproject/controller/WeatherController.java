@@ -1,6 +1,7 @@
 package com.nick.webserviceproject.controller;
 
-import com.nick.webserviceproject.model.WeatherData;
+import com.nick.webserviceproject.model.current.WeatherDataCurrent;
+import com.nick.webserviceproject.model.forecast.WeatherDataForecast;
 import com.nick.webserviceproject.service.WeatherService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,13 @@ public class WeatherController {
         this.weatherService = weatherService;
     }
 
-    @GetMapping()
-    public Mono<ResponseEntity<WeatherData>> getWeather(
+    @GetMapping("/current")
+    public Mono<ResponseEntity<WeatherDataCurrent>> getCurrentWeather(
             @RequestParam Optional<String> location,
             @RequestParam Optional<Double> lat,
             @RequestParam Optional<Double> lon) {
 
+        // Remake if time, simpler if statement and merge return for coordinates/city
         if (lat.isPresent() && lon.isPresent()) {
             String latLonLocation = lat.get() + "," + lon.get();
             return weatherService.getAndSaveWeatherByCoordinates(latLonLocation)
@@ -42,6 +44,14 @@ public class WeatherController {
                     .onErrorResume(e -> Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
         }
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+    }
+
+    @GetMapping("/forecast")
+    public Mono<ResponseEntity<WeatherDataForecast>> getForecastWeather(
+            @RequestParam Optional<String> location,
+            @RequestParam Optional<Double> lat,
+            @RequestParam Optional<Double> lon) {
+
     }
 
 

@@ -1,7 +1,6 @@
-package com.nick.webserviceproject.model;
+package com.nick.webserviceproject.model.common;
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 
 @Embeddable
 public class Location {

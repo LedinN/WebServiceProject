@@ -1,4 +1,4 @@
-package com.nick.webserviceproject.dto;
+package com.nick.webserviceproject.dto.current;
 
 public class ValuesDTO {
 

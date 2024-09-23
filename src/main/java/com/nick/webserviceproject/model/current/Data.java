@@ -1,4 +1,4 @@
-package com.nick.webserviceproject.model;
+package com.nick.webserviceproject.model.current;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;

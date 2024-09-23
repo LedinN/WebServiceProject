@@ -1,4 +1,6 @@
-package com.nick.webserviceproject.dto;
+package com.nick.webserviceproject.dto.current;
+
+import com.nick.webserviceproject.dto.common.LocationDTO;
 
 public class WeatherDataDTO {
 
