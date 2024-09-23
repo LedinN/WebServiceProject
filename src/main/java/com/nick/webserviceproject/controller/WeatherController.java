@@ -32,7 +32,7 @@ public class WeatherController {
     }
 
     @GetMapping("/current")
-    public Mono<ResponseEntity<WeatherDataCurrent>> getCurrentWeather(@Valid WeatherRequestDTO request) {
+    public Mono<ResponseEntity<WeatherDataCurrent>> getCurrentWeather(@Valid @ModelAttribute WeatherRequestDTO request) {
 
         String location;
         if (request.getLat() != null && request.getLon() != null) {
@@ -59,7 +59,7 @@ public class WeatherController {
 
 
     @GetMapping("/forecast")
-    public Mono<ResponseEntity<List<WeatherDataForecast>>> getForecastWeather(@Valid WeatherRequestDTO request) {
+    public Mono<ResponseEntity<List<WeatherDataForecast>>> getForecastWeather(@Valid @ModelAttribute WeatherRequestDTO request) {
 
         String location;
         if (request.getLat() != null && request.getLon() != null) {
