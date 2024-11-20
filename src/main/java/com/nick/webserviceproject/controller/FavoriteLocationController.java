@@ -33,10 +33,10 @@ public class FavoriteLocationController {
         FavoriteLocation location = convertToEntity(locationDTO);
         return favoriteLocationService.addFavoriteLocation(location)
                 .flatMap(savedLocation ->
-                        weatherService.getAndSaveCurrentWeather(savedLocation.getLat()+","+savedLocation.getLon())
+                        weatherService.getAndSaveCurrentWeather(savedLocation.getLat() + "," + savedLocation.getLon())
                                 .then(Mono.just(ResponseEntity.status(201)
                                         .build())
-                ));
+                                ));
     }
 
     @GetMapping
@@ -51,7 +51,7 @@ public class FavoriteLocationController {
 
         if (locationOpt.isPresent()) {
             FavoriteLocation location = locationOpt.get();
-            Optional<WeatherDataCurrent> currentWeatherOpt = weatherService.findWeatherByLatAndLon(location.getLat(),location.getLon());
+            Optional<WeatherDataCurrent> currentWeatherOpt = weatherService.findWeatherByLatAndLon(location.getLat(), location.getLon());
 
             if (currentWeatherOpt.isPresent()) {
                 WeatherDataCurrent currentWeather = currentWeatherOpt.get();

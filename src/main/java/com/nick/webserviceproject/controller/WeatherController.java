@@ -79,8 +79,9 @@ public class WeatherController {
                         return Mono.just(ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                                 .body(null));
                     } else {
-                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
-                }});
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                    }
+                });
     }
 
 

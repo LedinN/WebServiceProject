@@ -2,6 +2,9 @@ package com.nick.webserviceproject.model;
 
 import com.nick.webserviceproject.authorities.UserRole;
 import jakarta.persistence.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.List;
 
 @Entity
 public class CustomUser {
@@ -20,7 +23,7 @@ public class CustomUser {
     private boolean isCredentialsNonExpired;
     private boolean isEnabled;
 
-    public CustomUser() {}
+
     public CustomUser(String username, String password, UserRole userRole, boolean isAccountNonExpired, boolean isAccountNonLocked, boolean isCredentialsNonExpired, boolean isEnabled) {
         this.username = username;
         this.password = password;
@@ -31,8 +34,19 @@ public class CustomUser {
         this.isEnabled = isEnabled;
     }
 
+    public CustomUser() {
+    }
+
     public long getId() {
         return id;
+    }
+
+    public List<SimpleGrantedAuthority> getAuthorities() {
+        return userRole.getAuthorities();
+    }
+
+    public List<String> getListOfPermissions() {
+        return userRole.getListOfPermissions();
     }
 
     public String getUsername() {
