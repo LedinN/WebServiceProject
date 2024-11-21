@@ -22,8 +22,9 @@ public class AppSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                .csrf().disable()
                 .authorizeRequests(auth -> auth
-                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/", "/api/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/weather/*").hasRole("USER")
                         .anyRequest().authenticated()
                 )
