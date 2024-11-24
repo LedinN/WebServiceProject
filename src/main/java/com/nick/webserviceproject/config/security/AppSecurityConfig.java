@@ -1,5 +1,6 @@
 package com.nick.webserviceproject.config.security;
 
+import com.nick.webserviceproject.model.CustomUser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,10 +24,12 @@ public class AppSecurityConfig {
 
         http
                 .csrf().disable()
+                .cors(Customizer.withDefaults())
                 .authorizeRequests(auth -> auth
-                        .requestMatchers("/", "/api/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/weather/*").hasRole("USER")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/", "/api/**", "/weather/**").permitAll()
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        //.requestMatchers(HttpMethod.GET, "/weather/*").hasRole("USER")
+                       // .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults());
 
