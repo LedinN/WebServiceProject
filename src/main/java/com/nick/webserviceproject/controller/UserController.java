@@ -4,6 +4,7 @@ import com.nick.webserviceproject.authorities.UserRole;
 import com.nick.webserviceproject.dto.RegistrationRequestDTO;
 import com.nick.webserviceproject.model.CustomUser;
 import com.nick.webserviceproject.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "https://localhost:3000", allowedHeaders = "*", allowCredentials = "true")
 public class UserController {
 
     private final UserRepository userRepository;
@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegistrationRequestDTO registrationRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequestDTO registrationRequest) {
 
         if (userRepository.findByUsername(registrationRequest.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken");
@@ -44,7 +44,7 @@ public class UserController {
         CustomUser newUser = new CustomUser();
         newUser.setUsername(registrationRequest.getUsername());
         newUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-        newUser.setUserRole(UserRole.USER);
+        newUser.setUserRole(registrationRequest.getUserRole());
 
         userRepository.save(newUser);
 
