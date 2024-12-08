@@ -35,6 +35,10 @@ public class CustomUser {
     }
 
     public CustomUser() {
+        this.isAccountNonExpired = true;
+        this.isAccountNonLocked = true;
+        this.isCredentialsNonExpired = true;
+        this.isEnabled = true;
     }
 
     public long getId() {

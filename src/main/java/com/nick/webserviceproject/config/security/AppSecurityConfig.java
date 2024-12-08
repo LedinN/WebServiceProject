@@ -37,8 +37,9 @@ public class AppSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeRequests(auth -> auth
-                        .requestMatchers("/login", "/api/**", "/weather/**", "/register").permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("api/user/login", "/register").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/weather/*").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/user/register", "/api/user/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/weather/*").hasRole("USER")
                         .anyRequest().authenticated()
                 )
@@ -48,7 +49,6 @@ public class AppSecurityConfig {
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 //.formLogin(Customizer.withDefaults());
-
         return http.build();
     }
 

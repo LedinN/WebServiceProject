@@ -30,7 +30,7 @@ public enum UserRole {
         List<SimpleGrantedAuthority> simpleGrantedAuthorityList = new ArrayList<>();
 
         simpleGrantedAuthorityList.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
-        simpleGrantedAuthorityList.addAll(getListOfPermissions().stream().map(SimpleGrantedAuthority::new).toList());
+        //simpleGrantedAuthorityList.addAll(getListOfPermissions().stream().map(SimpleGrantedAuthority::new).toList());
 
         return simpleGrantedAuthorityList;
     }
