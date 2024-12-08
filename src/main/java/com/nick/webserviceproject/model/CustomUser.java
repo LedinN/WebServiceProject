@@ -49,10 +49,6 @@ public class CustomUser {
         return userRole.getAuthorities();
     }
 
-    public List<String> getListOfPermissions() {
-        return userRole.getListOfPermissions();
-    }
-
     public String getUsername() {
         return username;
     }

@@ -4,7 +4,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -25,16 +28,9 @@ public class JwtUtils {
     private Key signingKey;
 
     public String generateJwtToken(String username, List<String> roles) {
-        long currentTimeMillis = System.currentTimeMillis();
-        long expirationTimeMillis = currentTimeMillis + jwtExpirationMs;
-
-        System.out.println("Current time millis: " + currentTimeMillis);
-        System.out.println("JWT expiration delay (ms): " + jwtExpirationMs);
-        System.out.println("Expiration time millis: " + expirationTimeMillis);
-        System.out.println("Current time: " + new Date(currentTimeMillis));
-        System.out.println("Expiration time: " + new Date(expirationTimeMillis));
 
         System.out.println("Data to generateJwtToken: " + username + roles);
+        System.out.println("Username in login: " + username);
         return Jwts.builder()
                 .setSubject(username)
                 .claim("roles", roles)
@@ -50,6 +46,7 @@ public class JwtUtils {
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
+            System.out.println("VALIDATE TOKEN Token expiry:" + extractAllClaims(token).getExpiration());
             return true;
         } catch (Exception e) {
             System.err.println("Invalid JWT token: " + e.getMessage());
@@ -59,11 +56,12 @@ public class JwtUtils {
 
     public String getUsernameFromJwtToken(String token) {
         return extractClaim(token, Claims::getSubject);
+
     }
 
     public List<String> getRolesFromJwtToken(String token) {
         Claims claims = extractAllClaims(token);
-        System.out.println("Expected roles from JWT" + claims.get("roles", List.class));
+        System.out.println("Expected roles from JWT" + claims.get("roles", List.class).toString());
         return claims.get("roles", List.class);
 
     }
@@ -89,13 +87,30 @@ public class JwtUtils {
         return signingKey;
     }
 
-   /* private Key createSigningKey() {
-        if (secretKey.length() >= 32) {
-            System.out.println("Using provided secret key.");
-            return Keys.hmacShaKeyFor(secretKey.getBytes());
-        } else {
-            System.out.println("Generating secure key as fallback.");
-            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private String extractJwtFromCookie(HttpServletRequest request) {
+        System.out.println("Extracting JWT from Cookies...");
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                System.out.println("Cookie Name: " + cookie.getName() + ", Value: " + cookie.getValue());
+                if ("authToken".equals(cookie.getName())) {
+                    System.out.println("Found authToken cookie");
+                    return cookie.getValue();
+                }
+            }
         }
-    }*/
+        System.out.println("authToken cookie not found");
+        return null;
+    }
+
+    private String extractJwtFromRequest(HttpServletRequest request) {
+        System.out.println("Extracting JWT from Authorization Header...");
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        System.out.println("Authorization Header: " + header);
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return null;
+    }
+
 }

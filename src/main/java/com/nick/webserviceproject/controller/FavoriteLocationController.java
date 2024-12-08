@@ -5,7 +5,6 @@ import com.nick.webserviceproject.dto.favorite.FavoriteLocationDTO;
 import com.nick.webserviceproject.model.current.WeatherDataCurrent;
 import com.nick.webserviceproject.model.favorite.FavoriteLocation;
 import com.nick.webserviceproject.service.FavoriteLocationService;
-import com.nick.webserviceproject.service.WeatherService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,23 +20,21 @@ import java.util.Optional;
 public class FavoriteLocationController {
 
     private final FavoriteLocationService favoriteLocationService;
-    private final WeatherService weatherService;
 
-    public FavoriteLocationController(FavoriteLocationService favoriteLocationService, WeatherService weatherService) {
+    public FavoriteLocationController(FavoriteLocationService favoriteLocationService) {
         this.favoriteLocationService = favoriteLocationService;
-        this.weatherService = weatherService;
     }
 
-    @PostMapping
-    public Mono<ResponseEntity<String>> addFavoriteLocation(@Valid @RequestBody FavoriteLocationDTO locationDTO) {
-        FavoriteLocation location = convertToEntity(locationDTO);
-        return favoriteLocationService.addFavoriteLocation(location)
-                .flatMap(savedLocation ->
-                        weatherService.getAndSaveCurrentWeather(savedLocation.getLat() + "," + savedLocation.getLon())
-                                .then(Mono.just(ResponseEntity.status(201)
-                                        .build())
-                                ));
-    }
+//    @PostMapping
+//    public Mono<ResponseEntity<String>> addFavoriteLocation(@Valid @RequestBody FavoriteLocationDTO locationDTO) {
+//        FavoriteLocation location = convertToEntity(locationDTO);
+//        return favoriteLocationService.addFavoriteLocation(location)
+//                .flatMap(savedLocation ->
+//                        weatherService.getAndSaveCurrentWeather(savedLocation.getLat() + "," + savedLocation.getLon())
+//                                .then(Mono.just(ResponseEntity.status(201)
+//                                        .build())
+//                                ));
+//    }
 
     @GetMapping
     public ResponseEntity<List<FavoriteLocation>> getAllFavoriteLocations() {
@@ -45,29 +42,29 @@ public class FavoriteLocationController {
         return ResponseEntity.ok(locations);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<String> getFavoriteLocationById(@PathVariable long id) {
-        Optional<FavoriteLocation> locationOpt = favoriteLocationService.getFavoriteLocationById(id);
-
-        if (locationOpt.isPresent()) {
-            FavoriteLocation location = locationOpt.get();
-            Optional<WeatherDataCurrent> currentWeatherOpt = weatherService.findWeatherByLatAndLon(location.getLat(), location.getLon());
-
-            if (currentWeatherOpt.isPresent()) {
-                WeatherDataCurrent currentWeather = currentWeatherOpt.get();
-
-                String response = "Location" + location.getName() +
-                        "\nLatitude: " + location.getLat() +
-                        "\nLongitude: " + location.getLon() +
-                        "\nCurrent Weather:\n" + currentWeather.toString();
-                return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.status(404).body("No weather data found");
-            }
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<String> getFavoriteLocationById(@PathVariable long id) {
+//        Optional<FavoriteLocation> locationOpt = favoriteLocationService.getFavoriteLocationById(id);
+//
+//        if (locationOpt.isPresent()) {
+//            FavoriteLocation location = locationOpt.get();
+//            Optional<WeatherDataCurrent> currentWeatherOpt = weatherService.findWeatherByLatAndLon(location.getLat(), location.getLon());
+//
+//            if (currentWeatherOpt.isPresent()) {
+//                WeatherDataCurrent currentWeather = currentWeatherOpt.get();
+//
+//                String response = "Location" + location.getName() +
+//                        "\nLatitude: " + location.getLat() +
+//                        "\nLongitude: " + location.getLon() +
+//                        "\nCurrent Weather:\n" + currentWeather.toString();
+//                return ResponseEntity.ok(response);
+//            } else {
+//                return ResponseEntity.status(404).body("No weather data found");
+//            }
+//        } else {
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
 
     @PutMapping("/{id}")
     public ResponseEntity<FavoriteLocation> updateFavoriteLocation(

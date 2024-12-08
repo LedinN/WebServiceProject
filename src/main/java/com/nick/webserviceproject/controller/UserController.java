@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -80,7 +81,7 @@ public class UserController {
             List<String> roles = customUser
                     .getAuthorities()
                     .stream()
-                    .map(authority -> authority.getAuthority()).toList();
+                    .map(GrantedAuthority::getAuthority).toList();
             System.out.println("CUSTOM USER"+roles);
 
             final String token = jwtUtils.generateJwtToken(
@@ -89,14 +90,15 @@ public class UserController {
             );
             System.out.println("JWT TOKEN: "+token);
 
-            Cookie cookie = new Cookie("authToken", token);
+            Cookie cookie = new Cookie("authToken",token);
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge((int) TimeUnit.HOURS.toSeconds(1));
             response.addCookie(cookie);
             System.out.println("RESPONSE COOKIE MAX AGE: "+ cookie.getMaxAge());
-            System.out.println(response.getHeader("Set-Cookie"));
+            System.out.println("HEADER COOKIE: "+response.getHeader("Set-Cookie"));
+
             return ResponseEntity.ok(token);
 
 
@@ -107,6 +109,7 @@ public class UserController {
             clearAuthToken(response);
             return ResponseEntity.status(500).body("An error occured while loggin in"+e);
         }
+
         }
 
         private void clearAuthToken(HttpServletResponse response) {

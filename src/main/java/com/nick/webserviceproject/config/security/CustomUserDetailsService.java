@@ -22,7 +22,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         CustomUser customUser = userRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username + " not found"));
-
         return new CustomUserDetails(customUser);
+    }
+
+    public void saveUser(CustomUser user) {
+        userRepository.save(user);
+        System.out.println("User " + user.getUsername() + " saved successfully with role " + user.getUserRole());
     }
 }

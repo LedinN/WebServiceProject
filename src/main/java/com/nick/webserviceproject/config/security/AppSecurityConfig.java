@@ -1,7 +1,10 @@
 package com.nick.webserviceproject.config.security;
 
+import com.nick.webserviceproject.authorities.UserRole;
 import com.nick.webserviceproject.config.AppPasswordConfig;
 import com.nick.webserviceproject.config.security.jwt.JwtAuthenticationFilter;
+import com.nick.webserviceproject.exception.CustomAccessDeniedHandler;
+import com.nick.webserviceproject.exception.CustomAuthenticationEntryPoint;
 import com.nick.webserviceproject.model.CustomUser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,38 +25,41 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class AppSecurityConfig {
 
+    private final AppPasswordConfig appPasswordConfig;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public AppSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService) {
+    public AppSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService, AppPasswordConfig appPasswordConfig, CustomUserDetailsService customUserDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.userDetailsService = userDetailsService;
+        this.appPasswordConfig = appPasswordConfig;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .authorizeRequests(auth -> auth
-                        .requestMatchers("api/user/login", "/register").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/weather/*").hasRole("USER")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("api/user/login", "/register", "/api/test/create-test-user").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/register", "/api/user/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/weather/*").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/weather/").hasAuthority("USER")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .accessDeniedHandler(new CustomAccessDeniedHandler())
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-                //.formLogin(Customizer.withDefaults());
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, CustomUserDetailsService customUserDetailsService, AppPasswordConfig appPasswordConfig) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(appPasswordConfig.passwordEncoder());

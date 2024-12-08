@@ -2,35 +2,28 @@ package com.nick.webserviceproject.config.security;
 
 import com.nick.webserviceproject.model.CustomUser;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
 
     private final String username;
     private final String password;
-    private final Collection<? extends GrantedAuthority> authorities;
+    private final List<GrantedAuthority> authorities;
     private final boolean isAccountNonExpired;
     private final boolean isAccountNonLocked;
     private final boolean isCredentialsNonExpired;
     private final boolean isEnabled;
 
-    public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities, boolean isAccountNonExpired) {
-        this.username = username;
-        this.password = password;
-        this.authorities = authorities;
-        this.isAccountNonExpired = isAccountNonExpired;
-        this.isAccountNonLocked = true;
-        this.isCredentialsNonExpired = true;
-        this.isEnabled = true;
-    }
 
     public CustomUserDetails(CustomUser customUser) {
         this.username = customUser.getUsername();
         this.password = customUser.getPassword();
-        this.authorities = customUser.getAuthorities();
+        this.authorities = List.of(customUser.getUserRole()).stream().map(userRole -> new SimpleGrantedAuthority("ROLE_"+ userRole.name())).collect(Collectors.toList());
         this.isAccountNonExpired = customUser.isAccountNonExpired();
         this.isAccountNonLocked = customUser.isAccountNonLocked();
         this.isCredentialsNonExpired = customUser.isCredentialsNonExpired();
@@ -41,6 +34,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        System.out.println("Get authorities: "+authorities);
         return authorities;
     }
 
