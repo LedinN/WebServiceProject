@@ -23,7 +23,7 @@ public class CustomUserDetails implements UserDetails {
     public CustomUserDetails(CustomUser customUser) {
         this.username = customUser.getUsername();
         this.password = customUser.getPassword();
-        this.authorities = List.of(customUser.getUserRole()).stream().map(userRole -> new SimpleGrantedAuthority("ROLE_"+ userRole.name())).collect(Collectors.toList());
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + customUser.getUserRole().name()));
         this.isAccountNonExpired = customUser.isAccountNonExpired();
         this.isAccountNonLocked = customUser.isAccountNonLocked();
         this.isCredentialsNonExpired = customUser.isCredentialsNonExpired();
@@ -34,7 +34,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        System.out.println("Get authorities: "+authorities);
+
         return authorities;
     }
 

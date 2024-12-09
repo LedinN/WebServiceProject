@@ -17,11 +17,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -68,49 +70,56 @@ public class UserController {
     ) {
 
         try {
-            System.out.println("INSIDE LOGIN");
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-            System.out.println("AFTER AUTHENTICATION TOKEN: "+authenticationToken);
+            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,password));
+            System.out.println("User authenticated" + auth.getName());
+            System.out.println("User role IN LOGIN: " + auth.getAuthorities());
 
-            Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            System.out.println("AFTER AUTHENTICATION TOKEN 2: "+authenticationToken);
+            return ResponseEntity.ok().body(jwtUtils.generateJwtToken(auth));
 
-            CustomUserDetails customUser = (CustomUserDetails) authentication.getPrincipal();
-
-
-            List<String> roles = customUser
-                    .getAuthorities()
-                    .stream()
-                    .map(GrantedAuthority::getAuthority).toList();
-            System.out.println("CUSTOM USER"+roles);
-
-            final String token = jwtUtils.generateJwtToken(
-                    customUser.getUsername(),
-                    roles
-            );
-            System.out.println("JWT TOKEN: "+token);
-
-            Cookie cookie = new Cookie("authToken",token);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge((int) TimeUnit.HOURS.toSeconds(1));
-            response.addCookie(cookie);
-            System.out.println("RESPONSE COOKIE MAX AGE: "+ cookie.getMaxAge());
-            System.out.println("HEADER COOKIE: "+response.getHeader("Set-Cookie"));
-
-            return ResponseEntity.ok(token);
-
-
-        } catch (BadCredentialsException e) {
-            clearAuthToken(response);
-            return ResponseEntity.status(401).body("Invalid username or password");
         } catch (Exception e) {
-            clearAuthToken(response);
-            return ResponseEntity.status(500).body("An error occured while loggin in"+e);
+            System.out.println("ERROR:" + e.getMessage());
+        }
+        return ResponseEntity.badRequest().body("Invalid username or password");
+    }
+
+    @GetMapping("/who-am-i")
+    public ResponseEntity<?> whoAmI() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(401).body("You are not authenticated.");
         }
 
-        }
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        return ResponseEntity.ok(Map.of(
+                "username", userDetails.getUsername(),
+                "roles", userDetails.getAuthorities()
+        ));
+    }
+
+////            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+////            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+////
+////            CustomUserDetails customUser = (CustomUserDetails) authentication.getPrincipal();
+////            String role = customUser.getAuthorities().iterator().next().getAuthority();
+////            System.out.println("CUSTOM USER"+role);
+//
+//            String token = jwtUtils.generateJwtToken(customUser.getUsername(), role);
+//            System.out.println("JWT TOKEN: "+token);
+//
+//            return ResponseEntity.ok().body(token);
+//
+//
+//        } catch (BadCredentialsException e) {
+//            clearAuthToken(response);
+//            return ResponseEntity.status(401).body("Invalid username or password");
+//        } catch (Exception e) {
+//            clearAuthToken(response);
+//            return ResponseEntity.status(500).body("An error occured while loggin in"+e);
+//        }
+//
+//        }
 
         private void clearAuthToken(HttpServletResponse response) {
             Cookie expiredCookie = new Cookie("authToken", null);

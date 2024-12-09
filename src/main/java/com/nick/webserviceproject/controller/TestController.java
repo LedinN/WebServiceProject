@@ -24,7 +24,7 @@ public class TestController {
     @PostMapping("/create-test-user")
     public ResponseEntity<String> createTestUser() {
         CustomUser user = new CustomUser();
-        user.setUsername("testuser3");
+        user.setUsername("testuser4");
         user.setPassword(passwordEncoder.encode("password123"));
         user.setUserRole(UserRole.USER);
 

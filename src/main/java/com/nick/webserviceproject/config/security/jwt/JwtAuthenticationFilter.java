@@ -15,29 +15,26 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import reactor.util.annotation.NonNull;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService customUserDetailsService;
-    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Autowired
     public JwtAuthenticationFilter(JwtUtils jwtUtils, CustomUserDetailsService customUserDetailsService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver) {
         this.jwtUtils = jwtUtils;
         this.customUserDetailsService = customUserDetailsService;
-        this.handlerExceptionResolver = handlerExceptionResolver;
     }
+
 
     @Override
     protected void doFilterInternal(
@@ -45,43 +42,103 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        System.out.println("---- JwtAuthenticationFilter Start ----");
-        System.out.println("Request URI: " + request.getRequestURI());
+        System.out.println("---- JwtAuthenticationFilter: Start ----");
+        System.out.println("Request URL: " + request.getRequestURL());
+        System.out.println("Request Method: " + request.getMethod());
 
         final String authHeader = request.getHeader("Authorization");
+        System.out.println("Authorization Header: " + authHeader);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+        String token = null;
+        String username = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+            System.out.println("Extracted Token: " + token);
+
+            try {
+                username = jwtUtils.extractUsername(token);
+                System.out.println("Extracted Username from Token: " + username);
+            } catch (Exception e) {
+                System.out.println("Error extracting username from token: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Authorization header missing or does not start with 'Bearer '");
         }
 
-        try {
-            final String token = authHeader.substring(7);
-            final String username = jwtUtils.getUsernameFromJwtToken(token);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            System.out.println("No existing authentication found. Validating token...");
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (username != null && authentication == null) {
+            try {
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                System.out.println("Loaded UserDetails: " + userDetails.getUsername());
+                System.out.println("User Authorities: " + userDetails.getAuthorities());
 
-                if (jwtUtils.validateJwtToken(token)) {
-                    jwtUtils.getUsernameFromJwtToken(token);
-
-
+                if (jwtUtils.validateToken(token, userDetails)) {
+                    System.out.println("Token is valid. Setting authentication in SecurityContext...");
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails.getUsername(), null, userDetails.getAuthorities()
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
                     );
-//                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    authToken.setDetails(token);
-
+                    System.out.println("Username: " + userDetails.getUsername());
+                    System.out.println("Authentication set for user: " + userDetails.getAuthorities());
+                } else {
+                    System.out.println("Token validation failed");
                 }
-            } filterChain.doFilter(request, response);
-        } catch (Exception e) {
-            handlerExceptionResolver.resolveException(request, response, null, e);
+            } catch (Exception e) {
+                System.out.println("Error validating token: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No username extracted or authentication already exists.");
         }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            System.out.println("SecurityContext Authentication: " + authentication.getName());
+            System.out.println("SecurityContext Authorities: " + authentication.getAuthorities());
+        } else {
+            System.out.println("SecurityContext does not contain authentication.");
+        }
+
+        System.out.println("---- JwtAuthenticationFilter: End ----");
+        filterChain.doFilter(request, response);
     }
-    }
+}
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+//
+//        try {
+//            final String token = authHeader.substring(7);
+//            final String username = jwtUtils.getUsernameFromJwtToken(token);
+//
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//            if (username != null && authentication == null) {
+//                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+//
+//                if (jwtUtils.validateJwtToken(token)) {
+//                    jwtUtils.getUsernameFromJwtToken(token);
+//
+//
+//                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+//                            userDetails.getUsername(), null, userDetails.getAuthorities()
+//                    );
+////                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                    SecurityContextHolder.getContext().setAuthentication(authToken);
+//                    authToken.setDetails(token);
+//
+//                }
+//            } filterChain.doFilter(request, response);
+//        } catch (Exception e) {
+//            handlerExceptionResolver.resolveException(request, response, null, e);
+//        }
+//    }
+//    }
 
 //        if (token != null && jwtUtils.validateJwtToken(token)) {
 //            System.out.println("Token is valid");
