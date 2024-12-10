@@ -49,9 +49,12 @@ public class AppSecurityConfig {
                 .cors(Customizer.withDefaults())
 //                .anonymous().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("api/user/login", "/register", "/api/test/create-test-user").permitAll()
+                        .requestMatchers("api/user/login", "/register", "/api/test/create-admin-user").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/register", "/api/user/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/weather/*", "/api/user/who-am-i").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/weather/*").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/fetchallusers", "/api/user/delete/",
+                                "/api/user/change-password/","/api/user/promote/").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/who-am-i").authenticated()
                         .anyRequest().authenticated()
                 )
 //                .exceptionHandling(exceptionHandling -> exceptionHandling

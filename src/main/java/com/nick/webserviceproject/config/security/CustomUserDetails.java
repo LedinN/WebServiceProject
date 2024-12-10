@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
-
+    private final long id;
     private final String username;
     private final String password;
     private final List<GrantedAuthority> authorities;
@@ -21,6 +21,7 @@ public class CustomUserDetails implements UserDetails {
 
 
     public CustomUserDetails(CustomUser customUser) {
+        this.id = customUser.getId();
         this.username = customUser.getUsername();
         this.password = customUser.getPassword();
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + customUser.getUserRole().name()));
@@ -67,4 +68,10 @@ public class CustomUserDetails implements UserDetails {
     public boolean isEnabled() {
         return isEnabled;
     }
+
+    public long getId() {
+        return id;
+    }
+
+
 }
