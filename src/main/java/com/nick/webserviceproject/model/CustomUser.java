@@ -104,4 +104,7 @@ public class CustomUser {
     public void setEnabled(boolean enabled) {
         isEnabled = enabled;
     }
+
+    public void setId(Long userId) {
+    }
 }

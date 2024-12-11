@@ -53,14 +53,16 @@ public class AppSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/user/register", "/api/user/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/weather/*").hasAnyRole("USER","ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/user/fetchallusers", "/api/user/delete/",
-                                "/api/user/change-password/","/api/user/promote/").hasRole("ADMIN")
+                                "/api/user/change-password/**","/api/user/promote/").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/user/who-am-i").authenticated()
                         .anyRequest().authenticated()
                 )
-//                .exceptionHandling(exceptionHandling -> exceptionHandling
-//                        .accessDeniedHandler(new CustomAccessDeniedHandler())
-//                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-//                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .accessDeniedHandler(new CustomAccessDeniedHandler())
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )

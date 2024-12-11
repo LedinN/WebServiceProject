@@ -18,6 +18,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         System.out.println("AuthenticationEntryPoint triggered");
         System.out.println("Request URI: " + request.getRequestURI());
         System.out.println("Error: " + authException.getMessage());
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
+
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication is required to access this resource");
     }
 }

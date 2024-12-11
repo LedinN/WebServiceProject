@@ -62,14 +62,9 @@ public class UserService {
         return new CustomUserDTO(user.getId(), user.getUsername(), user.getUserRole().name());
     }
 
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
+    public void changePassword(Long userId, String newPassword) {
         CustomUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Old password is incorrect");
-        }
-
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }

@@ -102,9 +102,9 @@ public class UserController {
     public ResponseEntity<?> changePassword(
             @PathVariable Long id,
             @Valid @RequestBody UpdatePasswordDTO updatePasswordDTO
-    ) { // TODO - NO NEED TO CHECK OLD PASSWORD
+    ) {
         try {
-            userService.changePassword(id, updatePasswordDTO.getOldPassword(), updatePasswordDTO.getNewPassword());
+            userService.changePassword(id, updatePasswordDTO.getNewPassword());
             return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
