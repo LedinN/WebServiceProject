@@ -1,12 +1,11 @@
 package com.nick.webserviceproject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nick.webserviceproject.authorities.UserRole;
+import com.nick.webserviceproject.dto.CustomUserDTO;
 import com.nick.webserviceproject.dto.RegistrationRequestDTO;
 import com.nick.webserviceproject.dto.UpdatePasswordDTO;
 import com.nick.webserviceproject.model.CustomUser;
-import com.nick.webserviceproject.repository.UserRepository;
-import com.nick.webserviceproject.config.security.jwt.JwtUtils;
+import com.nick.webserviceproject.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,16 +14,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -36,63 +33,48 @@ public class UserControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private UserRepository userRepository;
+    private UserService userService;
 
-    @MockBean
-    private AuthenticationManager authenticationManager;
-
-    @MockBean
-    private JwtUtils jwtUtils;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    private CustomUser adminUser;
-    private CustomUser regularUser;
+    private CustomUserDTO adminUser;
+    private CustomUserDTO regularUser;
 
     @BeforeEach
     public void setUp() {
-        adminUser = new CustomUser();
-        adminUser.setId(1L);
-        adminUser.setUsername("admin");
-        adminUser.setPassword(passwordEncoder.encode("adminPassword"));
-        adminUser.setUserRole(UserRole.ADMIN);
-
-        regularUser = new CustomUser();
-        regularUser.setId(2L);
-        regularUser.setUsername("user");
-        regularUser.setPassword(passwordEncoder.encode("userPassword"));
-        regularUser.setUserRole(UserRole.USER);
-
-        Mockito.when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
-        Mockito.when(userRepository.findByUsername("user")).thenReturn(Optional.of(regularUser));
+        adminUser = new CustomUserDTO(1L, "admin", "ADMIN");
+        regularUser = new CustomUserDTO(2L, "user", "USER");
     }
 
     @Test
-    public void authenticateUser_Success() throws Exception {
-        String token = "mockJwtToken";
+    public void registerUser_Success() throws Exception {
+        RegistrationRequestDTO registrationRequest = new RegistrationRequestDTO();
+        registrationRequest.setUsername("newUser");
+        registrationRequest.setPassword("password123");
+        registrationRequest.setUserRole("USER");
 
-        Mockito.when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(new UsernamePasswordAuthenticationToken("admin", "adminPassword"));
-        Mockito.when(jwtUtils.generateJwtToken(any())).thenReturn(token);
+        Mockito.when(userService.registerUser(any(RegistrationRequestDTO.class))).thenReturn(null);
 
-        mockMvc.perform(post("/api/user/login")
-                        .param("username", "admin")
-                        .param("password", "adminPassword"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(token));
+        mockMvc.perform(post("/api/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(registrationRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("User registered successfully"));
     }
 
     @Test
-    public void authenticateUser_BadCredentials() throws Exception {
-        Mockito.when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException("Bad credentials"));
+    public void registerUser_UsernameAlreadyTaken() throws Exception {
+        RegistrationRequestDTO registrationRequest = new RegistrationRequestDTO();
+        registrationRequest.setUsername("user");
+        registrationRequest.setPassword("password123");
+        registrationRequest.setUserRole("USER");
 
-        mockMvc.perform(post("/api/user/login")
-                        .param("username", "admin")
-                        .param("password", "wrongPassword"))
+        Mockito.doThrow(new IllegalArgumentException("Username is already taken"))
+                .when(userService).registerUser(any(RegistrationRequestDTO.class));
+
+        mockMvc.perform(post("/api/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(registrationRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Invalid username or password"));
+                .andExpect(jsonPath("$.error").value("Username is already taken"));
     }
 
     @Test
@@ -101,7 +83,7 @@ public class UserControllerTest {
         UpdatePasswordDTO updatePasswordDTO = new UpdatePasswordDTO();
         updatePasswordDTO.setNewPassword("newPassword123");
 
-        Mockito.when(userRepository.findById(regularUser.getId())).thenReturn(Optional.of(regularUser));
+        Mockito.doNothing().when(userService).changePassword(eq(regularUser.getId()), eq("newPassword123"));
 
         mockMvc.perform(put("/api/user/change-password/{id}", regularUser.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +107,7 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     public void promoteToAdmin_Success() throws Exception {
-        Mockito.when(userRepository.findById(regularUser.getId())).thenReturn(Optional.of(regularUser));
+        Mockito.doNothing().when(userService).promoteToAdmin(eq(regularUser.getId()));
 
         mockMvc.perform(put("/api/user/promote/{id}", regularUser.getId()))
                 .andExpect(status().isOk())
@@ -134,34 +116,25 @@ public class UserControllerTest {
     }
 
     @Test
-    public void registerUser_Success() throws Exception {
-        RegistrationRequestDTO registrationRequest = new RegistrationRequestDTO();
-        registrationRequest.setUsername("newUser");
-        registrationRequest.setPassword("password123");
-        registrationRequest.setUserRole(String.valueOf(UserRole.USER));
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    public void deleteUser_Success() throws Exception {
+        Mockito.doNothing().when(userService).deleteUserById(eq(regularUser.getId()));
 
-        Mockito.when(userRepository.findByUsername("newUser")).thenReturn(Optional.empty());
-
-        mockMvc.perform(post("/api/user/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(registrationRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("User registered successfully"));
+        mockMvc.perform(delete("/api/user/delete/{id}", regularUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("User deleted successfully"));
     }
 
     @Test
-    public void registerUser_UsernameAlreadyTaken() throws Exception {
-        RegistrationRequestDTO registrationRequest = new RegistrationRequestDTO();
-        registrationRequest.setUsername("user");
-        registrationRequest.setPassword("password123");
-        registrationRequest.setUserRole(String.valueOf(UserRole.USER));
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    public void fetchAllUsers_Success() throws Exception {
+        Mockito.when(userService.getAllUsers()).thenReturn(List.of(adminUser, regularUser));
 
-        Mockito.when(userRepository.findByUsername("user")).thenReturn(Optional.of(regularUser));
-
-        mockMvc.perform(post("/api/user/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(registrationRequest)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Username is already taken"));
+        mockMvc.perform(get("/api/user/fetchallusers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].username").value("admin"))
+                .andExpect(jsonPath("$[1].username").value("user"));
     }
 }
+
