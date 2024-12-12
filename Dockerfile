@@ -1,23 +1,14 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Step 1: Use an official JDK image as a base
+FROM eclipse-temurin:17-jre
 
+# Step 2: Set the working directory
 WORKDIR /app
 
-COPY gradlew gradlew.bat ./
-COPY gradle ./gradle
-COPY build.gradle settings.gradle ./
-COPY src ./src
+# Step 3: Copy the built application JAR into the container
+COPY build/libs/WebServiceProject-0.0.1-SNAPSHOT.jar app.jar
 
-ENV SPRING_PROFILES_ACTIVE=test
-RUN ./gradlew clean test build --no-daemon
-
-FROM eclipse-temurin:17-jre-alpine
-
-WORKDIR /app
-
-COPY --from=build /app/build/libs/WebServiceProject-0.0.1-SNAPSHOT.jar app.jar
-
-COPY src/main/resources/mykeystore.p12 /app/resources/mykeystore.p12
-
+# Step 4: Expose the port your app runs on
 EXPOSE 8443
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-Dserver.ssl.key-store=/app/resources/mykeystore.p12", "-Dserver.ssl.key-store-password=testet1", "-Dserver.ssl.key-store-type=PKCS12", "-Dserver.ssl.key-alias=mycert", "-jar", "app.jar"]
+# Step 5: Define the command to run the app
+ENTRYPOINT ["java", "-jar", "app.jar"]

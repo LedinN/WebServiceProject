@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build, Test, and Dockerize Backend
+    name: Build, Test Backend
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,9 @@ jobs:
             gradle-${{ runner.os }}
 
       - name: Build and Test Backend
-        run: ./gradlew clean test build --no-daemon
+        run: ./gradlew clean test build --info --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
 
       - name: Build Docker Image
         run: |
@@ -47,4 +49,9 @@ jobs:
 
       - name: Run Tests with Docker Image
         run: |
-          docker run --rm -d -p 8443:8443 webserviceproject:latest
+          docker run --rm -d \
+            -e SPRING_PROFILES_ACTIVE=test \
+            -e DATABASE_URL=jdbc:h2:mem:testdb \
+            -e DATABASE_USERNAME=sa \
+            -e DATABASE_PASSWORD=password \
+            -p 8443:8443 webserviceproject:latest
