@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -34,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-
 
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
@@ -121,11 +121,6 @@ public class UserController {
         }
     }
 
-        @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(HttpServletResponse response) {
-
-        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
-        }
     }
 
 
