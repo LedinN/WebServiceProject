@@ -3,12 +3,14 @@ package com.nick.webserviceproject.dto;
 import com.nick.webserviceproject.authorities.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public class RegistrationRequestDTO {
 
     @NotBlank
     private String username;
     @NotBlank
+    @Size(min = 8, message = "Password must be atleast 8 characters long")
     private String password;
     @NotNull
     private UserRole userRole;
