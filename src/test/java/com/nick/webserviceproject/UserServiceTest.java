@@ -163,7 +163,7 @@ public class UserServiceTest {
 
         CustomUserDTO result = userService.getAuthenticatedUser();
 
-        Assertions.assertEquals("notauthenticatedUser", result.getUsername());
+        Assertions.assertEquals("authenticatedUser", result.getUsername());
         Assertions.assertEquals(UserRole.USER.name(), result.getRole());
     }
 
